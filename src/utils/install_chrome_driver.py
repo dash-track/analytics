@@ -12,7 +12,7 @@ sys.path.append(f"{pathlib.Path(__file__).parent.resolve()}/../..")
 
 import constants
 
-from scripts.utils import logger
+from src.utils import logger
 
 # Determine system architecture
 system_arch = subprocess.check_output("uname -sm", shell=True).decode("utf-8").strip()
@@ -85,7 +85,7 @@ def get_chrome_driver_url(version: str) -> str:
 
 
 def main():
-    target_chrome_version = os.getenv("TRAPP_CHROME_VER")
+    target_chrome_version = os.getenv("DT_CHROME_VER")
     version = ".".join(target_chrome_version.split(" ")[2].split(".")[:-1])
     url = get_chrome_driver_url(version)
     # Download chrome-driver using wget into bin/chrome-driver/
