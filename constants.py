@@ -80,6 +80,7 @@ CHROME_DRIVER_COOKIE_DIR = f"{PROJECT_ROOT}/.cache/chrome_driver_<platform>"
 
 #### Selenium Constants ####
 SELENIUM_TIMEOUT = 5
+SELENIUM_GLOBAL_DRIVER_WAIT_TIME = 120
 
 #### Multiprocessing Constants ####
 MAX_WORKERS = 10
