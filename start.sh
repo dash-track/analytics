@@ -16,6 +16,17 @@ tildify() {
     fi
 }
 
+# If the --dev flag is passed, check if $DT_HOME is set, if it is not, set it to the current directory
+if [[ "$1" == "--dev" ]]; then
+    if [[ ! -d "src" ]]; then
+        echo "Please run this script from the root directory of the project."
+        exit 1
+    fi
+    if [[ "$DT_HOME" == "" ]]; then
+        export DT_HOME=$(pwd)
+    fi
+fi
+
 # Check if the $DT_HOME environment variable is set. Thanks to Bun.sh for this snippet.
 if [[ ! "$1" == "--dev" ]] && [[ "$DT_HOME" == "" || ! "$DT_HOME" =~ "libexec" ]]; then
 # if [[ "$DT_HOME" == "" ]]; then
@@ -272,7 +283,7 @@ if [[ "$arch" == "Linux" ]]; then
             sudo apt -y install google-chrome-stable
             chrome_ver=$(google-chrome --version)
         else
-            quit "Google Chrome was not installed. Please install Google Chrome manually to use autofill."
+            quit "Google Chrome was not installed. Please install Google Chrome manually."
         fi
     else
         export DT_CHROME_VER=$chrome_ver
@@ -289,20 +300,20 @@ elif [[ "$arch" == "Darwin" ]]; then
             brew install --cask google-chrome
             chrome_ver=$(/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version)
         else
-            cecho -c yellow -t "Google Chrome was not installed. Please install Google Chrome manually to use autofill."
+            cecho -c yellow -t "Google Chrome was not installed. Please install Google Chrome manually."
         fi
     else
         export DT_CHROME_VER=$chrome_ver
         cecho -c green -t "Google Chrome found!"
     fi
 else
-    quit "Invalid architecture: $arch. trapp is only supported on x86_64 and arm64 versions of Darwin and Linux."
+    quit "Invalid architecture: $arch. DashTrack is only supported on x86_64 and arm64 versions of Darwin and Linux."
 fi
 
 # Check post-install
 if [[ "$chrome_ver" == "" ]]; then
     # Ask user to install Google Chrome
-    cecho -c yellow -t "Google Chrome was not installed. Please install Google Chrome manually to use autofill."
+    cecho -c yellow -t "Google Chrome was not installed. Please install Google Chrome manually."
 else
     export DT_CHROME_VER=$chrome_ver
 fi
