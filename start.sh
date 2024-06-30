@@ -16,6 +16,17 @@ tildify() {
     fi
 }
 
+# If the --dev flag is passed, check if $DT_HOME is set, if it is not, set it to the current directory
+if [[ "$1" == "--dev" ]]; then
+    if [[ ! -d "src" ]]; then
+        echo "Please run this script from the root directory of the project."
+        exit 1
+    fi
+    if [[ "$DT_HOME" == "" ]]; then
+        export DT_HOME=$(pwd)
+    fi
+fi
+
 # Check if the $DT_HOME environment variable is set. Thanks to Bun.sh for this snippet.
 if [[ ! "$1" == "--dev" ]] && [[ "$DT_HOME" == "" || ! "$DT_HOME" =~ "libexec" ]]; then
 # if [[ "$DT_HOME" == "" ]]; then
