@@ -1,6 +1,6 @@
 # DashTrack
 
-## Installation (&#x26a0;&#xfe0f; WIP)
+## &#x26a0;&#xfe0f; Installation (WIP)
 
 In its current iteration, this method will not work. We are still in the process of setting up a reliable distribution target.
 
