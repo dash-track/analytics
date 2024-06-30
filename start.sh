@@ -168,7 +168,18 @@ Track your DoorDash trends!
 
 Usage: ./start.sh [OPTIONS]
 
-OPTIONS:  
+OPTIONS:
+    -c, --clean
+        Clean up cache and daemon files
+
+    -f, --fix <service>
+        Fix any broken trapp service. Currently supported services:
+            colima
+            redis
+
+    --build-dependencies
+        Build pip3 dependencies for trapp on the current system
+
     -h, --help
         Print help and exit
 
