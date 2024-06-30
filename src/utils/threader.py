@@ -7,7 +7,6 @@ from multiprocessing.pool import ThreadPool as Pool
 
 
 class LogExceptions(object):
-
     """
     Error logger for multiprocessing apply_async functions
     """

@@ -5,7 +5,6 @@ import pathlib
 import sys
 import uuid
 
-
 # Added to make the utils module available to the script
 sys.path.append(f"{pathlib.Path(__file__).parent.resolve()}/../..")
 
@@ -14,12 +13,22 @@ from src.utils.errors import ServiceAlreadyRunningError, ServiceNotRunningError
 
 
 class RedisService:
+    """
+    Wrapper class for the Redis service. Handles starting, stopping, and checking the
+    status of the Redis service.
+    """
+
     def __init__(self, password: str):
+        """
+        Initialize Redis service with password.
+
+        @param password: Redis password
+        """
         self.password = password
 
     def connect(self) -> redis.StrictRedis:
         """
-        Connect to redis through python client
+        Connect to redis through python client.
         """
         # Check if Redis is running
         if not RedisService.status():
@@ -38,7 +47,7 @@ class RedisService:
 
     def flush(self) -> None:
         """
-        Flush Redis database
+        Flush Redis database.
         """
         # Make sure Redis is running
         if not RedisService.status():
@@ -49,6 +58,9 @@ class RedisService:
             raise ServiceNotRunningError("Redis")
 
     def stop(self) -> None:
+        """
+        Stop the Redis service through Docker.
+        """
         # Clear Redis database
         self.flush()
         # Stop Redis service, remove container and volume
@@ -64,7 +76,7 @@ class RedisService:
 
     def init(self) -> None:
         """
-        Start the Redis service through Docker
+        Start the Redis service through Docker.
         """
         # Make sure Redis is not running
         if RedisService.status():
@@ -92,7 +104,7 @@ class RedisService:
     @staticmethod
     def status() -> bool:
         """
-        Check if Redis is running
+        Check if Redis is running.
         """
         filename = f"{constants.REDIS_STATUS_TMP}_{uuid.uuid4()}"
         with open(filename, "w") as log:

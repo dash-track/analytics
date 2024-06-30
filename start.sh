@@ -383,6 +383,48 @@ ARGFLAG=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+    -f | --fix)
+        shift # Remove the --fix argument
+        service=$1
+        if [[ "$service" == "" ]]; then
+            quit "No service specified!"
+        fi
+        cecho -c yellow -t "Fixing $service..."
+        if [[ "$service" == "colima" ]]; then
+            status=$(limactl list | grep colima | awk -F' ' '{print $2}')
+            cecho -c yellow -t "Colima cotainer status: $status"
+            if [[ "$status" == "Broken" ]]; then
+                limactl factory-reset colima
+                status=$(limactl list | grep colima | awk -F' ' '{print $2}')
+                if [[ "$status" == "Broken" ]]; then
+                    quit "Failed to fix colima!"
+                else
+                    cecho -c green -t "Colima fixed!"
+                fi
+            else
+                cecho -c green -t "Colima is not broken!"
+                quit
+            fi
+        elif [[ "$service" == "redis" ]]; then
+            docker_redis_metadata=$($DT_PYTHON -c "import sys; sys.path.append('$DT_HOME'); from constants import REDIS_CONTAINER_NAME, REDIS_DATA_DIR; print(REDIS_CONTAINER_NAME, REDIS_DATA_DIR)")
+            container_name=$(echo $docker_redis_metadata | awk -F' ' '{print $1}')
+            data_volume_name=$(echo $docker_redis_metadata | awk -F' ' '{print $2}')
+            status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
+            cecho -c yellow -t "Redis container status: $status"
+            if [[ "$status" =~ "No such object" ]]; then
+                quit "No redis service found to fix!"
+            else
+                # Stop and remove redis container
+                docker rm -f $container_name 2>&1
+                docker volume rm $data_volume_name 2>&1
+                cecho -c green -t "Redis container removed!"
+                cecho -c green -t "To restart redis, run trapp again."
+            fi
+            quit
+        else
+            quit "Invalid service: $service"
+        fi
+        ;;
     *)
         quit "Invalid option: $arg"
         ;;
@@ -390,5 +432,5 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 if [ $ARGFLAG -eq 0 ]; then
-    $DT_PYTHON $DT_HOME/main.py
+    $DT_PYTHON $DT_HOME/src/main.py
 fi
