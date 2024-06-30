@@ -25,5 +25,5 @@ export DT_HOME=$(pwd)
 Run the following commands to install the nessasary brew packages.
 
 ```
-brew install wget rm-improved
+brew install bash coreutils gum docker gawk unzip gnu-tar bat wget rm-improved colima openssl@1.1 python-setuptools
 ```

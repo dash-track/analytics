@@ -300,6 +300,20 @@ else
     cecho -c green -t "All dependencies are present!"
 fi
 
+if [[ "$(docker ps 2>&1)" =~ "Cannot connect to the Docker daemon" ]]; then
+    if [[ $arch == "Darwin" ]]; then
+        # Ask user to install Docker Desktop
+        cecho -c yellow -t "Docker runtime not detected. Please start or install Docker Desktop to use DashTrack."
+    elif [[ $arch == "Linux" ]]; then
+        cecho -c yellow -t "Docker runtime not detected. Starting runtime (docker engine)..."
+        sudo service docker start
+    else
+        quit "Invalid architecture: $arch. trapp is only supported on x86_64 and arm64 versions of Darwin and Linux."
+    fi
+else
+    cecho -c green -t "Docker runtime found!"
+fi
+
 # Check if Google Chrome is installed on system (only required for autofill)
 if [[ "$arch" == "Linux" ]]; then
     chrome_ver=$(google-chrome --version)
