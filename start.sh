@@ -16,6 +16,8 @@ tildify() {
     fi
 }
 
+dt_command="dashtrack"
+
 # If the --dev flag is passed, check if $DT_HOME is set, if it is not, set it to the current directory
 if [[ "$1" == "--dev" ]]; then
     if [[ ! -d "src" ]]; then
@@ -24,6 +26,7 @@ if [[ "$1" == "--dev" ]]; then
     fi
     if [[ "$DT_HOME" == "" ]]; then
         export DT_HOME=$(pwd)
+        dt_command="./start.sh"
     fi
 fi
 
@@ -166,7 +169,7 @@ help() {
 DashTrack 0.0.0
 Track your DoorDash trends!
 
-Usage: ./start.sh [OPTIONS]
+Usage: $dt_command [OPTIONS]
 
 OPTIONS:
     -c, --clean
@@ -182,6 +185,9 @@ OPTIONS:
 
     -h, --help
         Print help and exit
+
+    -v, --version
+        Print version, help and exit
 
 EOF
 }
@@ -265,7 +271,7 @@ clean() {
 }
 
 # Check if --help or -h is passed as an argument
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
     help
     quit
 fi
