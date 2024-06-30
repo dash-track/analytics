@@ -1,7 +1,8 @@
 # DashTrack
 
-## Installation (WIP)
-&#x26a0;&#xfe0f; In its current iteration, this method will not work. We are still in the process of setting up a reliable deployment target.
+## Installation (&#x26a0;&#xfe0f; WIP)
+
+In its current iteration, this method will not work. We are still in the process of setting up a reliable distribution target.
 
 ```
 brew tap KartavyaSharma/DashTrack-Homebrew
