@@ -5,3 +5,5 @@ httpx==0.25.0
 browser-cookie3==0.19.1
 beautifulsoup4==4.12.2
 shellingham==1.5.4
+setuptools==70.1.1
+undetected-chromedriver==3.5.5

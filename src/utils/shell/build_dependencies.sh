@@ -3,11 +3,13 @@
 # This script is used to build the dependencies for the project.
 # It is intended to be run from the root of the project.
 
-artifact_home_dir=$DT_HOME/infra/artifacts
+cecho() {
+    ${CECHO} "$@"
+}
 
 # If $artifact_home_dir doesn't exist, create it
-if [ ! -d "$artifact_home_dir" ]; then
-    mkdir -p $artifact_home_dir
+if [ ! -d "$ARTIFACT_HOME_DIR" ]; then
+    mkdir -p $ARTIFACT_HOME_DIR
 fi
 
 # Check if the script is being run from the root of the project
@@ -17,20 +19,32 @@ if [ ! -f "$DT_HOME/src/utils/shell/build_dependencies.sh" ]; then
 fi
 
 # Create the build directory if it doesn't exist
-if [ ! -d "$artifact_home_dir" ]; then
+if [ ! -d "$ARTIFACT_HOME_DIR" ]; then
     echo "The artifact home directory does not exist. Creating it."
-    mkdir $artifact_home_dir
+    mkdir $ARTIFACT_HOME_DIR
 fi
 
 # Create the dependencies directory if it doesn't exist
-if [ ! -d "$artifact_home_dir/dependencies" ]; then
-    mkdir $artifact_home_dir/dependencies
+if [ ! -d "$ARTIFACT_HOME_DIR/dependencies" ]; then
+    mkdir $ARTIFACT_HOME_DIR/dependencies
 fi
 
-# Download pip3 dependencies into the dependencies directory
-$DT_HOME/env/bin/pip download -r $DT_HOME/requirements.txt -d $artifact_home_dir/dependencies
+# Create the requirements_hash file if it doesn't exist
+if [ ! -f "$DT_HOME/infra/artifacts/requirements_hash" ]; then
+    echo "Creating requirements_hash file..."
+    touch $DT_HOME/infra/artifacts/requirements_hash
+fi
 
-cd $artifact_home_dir
+# Overwrite the requirements_hash file with the hash of the requirements file
+hash=$(sha256sum $DT_HOME/requirements.txt | awk '{print $1}')
+echo $hash > $DT_HOME/infra/artifacts/requirements_hash
+
+cecho -c yellow -t "Building dependencies..."
+
+# Download pip3 dependencies into the dependencies directory
+$DT_PIP download -r $DT_HOME/requirements.txt -d $ARTIFACT_HOME_DIR/dependencies
+
+cd $ARTIFACT_HOME_DIR
 
 # Create a tarball of the dependencies directory
 arch=$(uname -sm)
@@ -39,5 +53,7 @@ tar -czvf dependencies.tar.$arch.gz dependencies
 
 # Clean up the dependencies directory
 rip dependencies
+
+cecho -c green -t "Dependencies built successfully."
 
 cd $DT_HOME 

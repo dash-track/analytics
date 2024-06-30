@@ -150,10 +150,11 @@ if [[ "$1" == "--dev" ]]; then
     shift
 fi
 
-cecho_path=$(realpath $DT_HOME/src/utils/shell/echo.sh)
-chmod +x $cecho_path
+export CECHO=$(realpath $DT_HOME/src/utils/shell/echo.sh)
+export ARTIFACT_HOME_DIR=$DT_HOME/infra/artifacts
+
 cecho() {
-    ${cecho_path} "$@"
+    ${CECHO} "$@"
 }
 
 # Set architecture
@@ -174,11 +175,50 @@ OPTIONS:
 EOF
 }
 
+quit() {
+    error=$@
+    # Unset all variables
+    unset arch
+    unset ARGFLAG
+    unset ARTIFACT_HOME_DIR
+    unset DT_PYTHON
+    unset DT_PIP
+    # deactivate
+    if [[ "$error" != "" ]]; then
+        cecho -c red -t "Program exited with error."
+        cecho -c red -t "Error: $error"
+        help
+        exit 1
+    else
+        # Exit program
+        cecho -c green -t "Program exited."
+    fi
+    exit 0
+}
+
+have_requirments_changed() {
+    if [ ! -f "$DT_HOME/requirements.txt" ]; then
+        quit "requirements.txt not found!"
+    fi
+
+    # If the requirements_hash file does not exist, return 1
+    if [ ! -f "$DT_HOME/infra/artifacts/requirements_hash" ]; then
+        return 1
+    fi
+
+    current_hash=$(sha256sum $DT_HOME/requirements.txt | awk '{print $1}')
+    previous_hash=$(cat $DT_HOME/infra/artifacts/requirements_hash)
+
+    if [[ "$current_hash" == "$previous_hash" ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 clean() {
     echo "Cleaning up..."
-    echo -e "Removing .cache\nRemoving logs\nRemoving temp infra files"
-    rip $DT_HOME/.cache $DT_HOME/bkp/logs $DT_HOME/infra/artifacts $DT_HOME/infra/build/formula/out 2>/dev/null
-    echo "Removing preview files..."
+    cecho -c green -t "Removing preview files..."
     # Check if there are any preview files
     preview_files=$(find $DT_HOME -type f -name "*.preview" -print)
     if [[ "$preview_files" == "" ]]; then
@@ -195,45 +235,34 @@ clean() {
             echo "Preview files not deleted!"
         fi
     fi
-    echo "Removing dependencies..."
-    dependencies=($DT_HOME/env $DT_HOME/bin $DT_HOME/logs $DT_HOME/__pycache__)
+    cecho -c green -t "Removing dependencies..."
+    dependencies=($DT_HOME/env $DT_HOME/bin $DT_HOME/logs $DT_HOME/__pycache__ $DT_HOME/.cache $DT_HOME/infra/build/formula/out)
+    # Check if requirements have changed
+    have_requirments_changed
+    if [ $? -eq 0 ]; then
+        echo "Requirements have changed. Removing cached dependencies..."
+        dependencies+=($DT_HOME/infra/artifacts)
+    fi
     for dependency in "${dependencies[@]}"; do
         if test -d "$dependency"; then
             echo "Removing $dependency"
             rip $dependency
         fi
     done
+    cecho -c green -t "Done!"
     echo
-}
-
-quit() {
-    error=$@
-    # Unset all variables
-    unset arch
-    unset ARGFLAG
-    # deactivate
-    if [[ "$error" != "" ]]; then
-        cecho -c red -t "Program exited with error."
-        cecho -c red -t "Error: $error"
-        help
-        exit 1
-    else
-        # Exit program
-        cecho -c green -t "Program exited."
-    fi
-    exit 0
 }
 
 # Check if --help or -h is passed as an argument
 if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
     help
-    exit 0
+    quit
 fi
 
 # Check if --clean or -c is passed as an argument
 if [[ "$1" == "-c" ]] || [[ "$1" == "--clean" ]]; then
     clean
-    exit 0
+    quit
 fi
 
 # Create logs, .cache, bkp, and bin directories in one go if none exist
@@ -252,10 +281,13 @@ else
     cecho -c green -t "Virtual environment found!"
 fi
 
+export DT_PYTHON=$DT_HOME/env/bin/python3 # Set python3 in virtual environment
+export DT_PIP=$DT_HOME/env/bin/pip3 # Set pip3 in virtual environment
+
 # Check if --build-dependencies is passed as an argument
 if [[ "$1" == "--build-dependencies" ]]; then
     $DT_HOME/src/utils/shell/build_dependencies.sh
-    exit 0
+    quit
 fi
 
 # Check if requirements are satisfied in virtual environment
@@ -344,5 +376,5 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 if [ $ARGFLAG -eq 0 ]; then
-    $DT_HOME/env/bin/python3 $DT_HOME/main.py
+    $DT_PYTHON $DT_HOME/main.py
 fi
