@@ -176,8 +176,8 @@ EOF
 
 clean() {
     echo "Cleaning up..."
-    echo -e "Removing .cache\nRemoving logs"
-    rip $DT_HOME/.cache $DT_HOME/bkp/logs 2>/dev/null
+    echo -e "Removing .cache\nRemoving logs\nRemoving temp infra files"
+    rip $DT_HOME/.cache $DT_HOME/bkp/logs $DT_HOME/infra/artifacts $DT_HOME/infra/build/formula/out 2>/dev/null
     echo "Removing preview files..."
     # Check if there are any preview files
     preview_files=$(find $DT_HOME -type f -name "*.preview" -print)
