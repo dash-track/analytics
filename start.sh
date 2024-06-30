@@ -153,7 +153,7 @@ if [[ "$1" == "--dev" ]]; then
     shift
 fi
 
-export CECHO=$(realpath $DT_HOME/src/utils/shell/echo.sh)
+export CECHO=$(realpath $DT_HOME/infra/scripts/shell/echo.sh)
 export ARTIFACT_HOME_DIR=$DT_HOME/infra/artifacts
 
 cecho() {
@@ -303,7 +303,7 @@ export DT_PIP=$DT_HOME/env/bin/pip3 # Set pip3 in virtual environment
 
 # Check if --build-dependencies is passed as an argument
 if [[ "$1" == "--build-dependencies" ]]; then
-    $DT_HOME/src/utils/shell/build_dependencies.sh
+    $DT_HOME/infra/scripts/shell/build_dependencies.sh
     quit
 fi
 
@@ -312,7 +312,7 @@ output=$($DT_HOME/env/bin/python3 $DT_HOME/tests/test_requirements.py)
 if [ $? -ne 0 ]; then
     cecho -c yellow -t "Error: python3 ./tests/test_requirements.py failed with output^"
     echo "Dependency requirements not satisfied. Installing dependencies..."
-    $DT_HOME/src/utils/shell/load_dependencies.sh
+    $DT_HOME/infra/scripts/shell/load_dependencies.sh
 else
     cecho -c green -t "All dependencies are present!"
 fi
@@ -391,7 +391,7 @@ else
     # Check if the script ran successfully
     if [ $? -ne 0 ]; then
         # rm -rf bin/chrome-driver
-        quit "scripts/utils/install_chrome_driver.py failed. Please check the logs for more information."
+        quit "src/utils/install_chrome_driver.py failed. Please check the logs for more information."
     fi
 fi
 
