@@ -4,7 +4,7 @@
 # It is intended to be run from the root of the project.
 
 # Check if the script is being run from the root of the project
-if [ ! -f "$DT_HOME/src/utils/shell/build_dependencies.sh" ]; then
+if [ ! -f "$DT_HOME/infra/scripts/shell/build_dependencies.sh" ]; then
     echo "This script must be run from the root of the project."
     exit 1
 fi
