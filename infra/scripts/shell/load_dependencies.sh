@@ -21,7 +21,7 @@ arch=${arch// /_}
 # Check if the dependencies tarball exists
 if [ ! -f "$ARTIFACT_HOME_DIR/dependencies.tar.$arch.gz" ]; then
     echo "The dependencies tarball does not exist. Running build_dependencies.sh."
-    $DT_HOME/src/utils/shell/build_dependencies.sh
+    $DT_HOME/infra/scripts/shell/build_dependencies.sh
 fi
 
 # Extract the dependencies tarball

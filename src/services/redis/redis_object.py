@@ -1,7 +1,7 @@
-
 from abc import ABC, abstractmethod
 
-class RedisInterface(ABC):
+
+class RedisObject(ABC):
     @abstractmethod
     def save(self):
         """
@@ -10,7 +10,7 @@ class RedisInterface(ABC):
         the hashed value is the responsibility of the child class.
         """
         raise NotImplementedError("Method not implemented")
-    
+
     @abstractmethod
     def load(self, key):
         """
