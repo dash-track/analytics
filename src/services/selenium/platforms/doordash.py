@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import undetected_chromedriver as uc
 import sys
 import pathlib
@@ -12,6 +13,7 @@ import pickle
 import os
 import time
 from datetime import datetime, date
+import pyautogui
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[4]))
 import constants
@@ -37,8 +39,8 @@ class DoorDash(Platform):
         driver = uc.Chrome(service=self.service, options=options)
         return driver
     
-    def close_driver(self):
-        return super().close_driver()
+    def quit_driver(self):
+        return super().quit_driver()
 
     def login(self):
         self.driver.get("https://www.doordash.com/")
@@ -96,8 +98,36 @@ class DoorDash(Platform):
             print("Error: ", e)
 
     def query_all_orders(self):
-        return super().query_all_orders()
+        finished = False
 
+        try:
+            while not finished:
+                try:
+                    orders = self.driver.find_elements(By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0 mvEok')]")
+                    print("Found Orders: ", len(orders))
+                
+                    for order in orders:
+                        receipt_button = WebDriverWait(self.driver, 10).until(
+                                EC.presence_of_element_located((By.XPATH, "//span[text()='View Receipt']"))
+                            )
+                        action = ActionChains(self.driver)
+                        action.context_click(receipt_button)
+
+                        time.sleep(5)
+
+                        pyautogui.press('down')
+                        pyautogui.press('enter')
+                        
+                        time.sleep(5)
+
+                except Exception as e:
+                    print("Error processing order: ", e)
+                    continue
+
+                finished = True
+
+        except Exception as e:
+            print("Error: ", e)
 
 
     # redo this entire method
@@ -172,7 +202,7 @@ class Main():
         # total = self.DD.add_order_total(start_date)
         # print(f"Total order amounts since {start_date.strftime('%d %b')}: US${total}")
         self.DD.query_all_orders()
-        self.DD.close_driver()
+        self.DD.quit_driver()
 
 if __name__ == "__main__":
     Main()

@@ -9,7 +9,7 @@ class Platform:
     def init_driver(self):
         raise NotImplementedError("Subclasses must implement this method")
     
-    def close_driver(self):
+    def quit_driver(self):
         if self.driver:
             self.driver.quit()
 
