@@ -4,29 +4,6 @@ import os
 #### Project Root ####
 PROJECT_ROOT = f"{pathlib.Path(__file__).parent.resolve()}"
 
-# ##### Select Menu Constants #####
-# AUTO = "Automatically generate entry from url (beta)"
-# ADD = "Add new job application"
-# EDIT = "Edit existing job application"
-# VIEW = "View all job applications"
-# QUIT = "Quit"
-# BKP = "Start Backup Daemon"
-# PRT = "Print to file"
-
-# CHOICE_MAP = {
-#     "Automatically generate entry from url (beta)": "auto",
-#     "Add new job application": "add",
-#     "Edit existing job application": "edit",
-#     "View all job applications": "view",
-#     "Quit": "quit",
-#     "Start Backup Daemon": "bkp",
-#     "Print to file": "print",
-# }
-
-# ##### File Constants #####
-# SOURCE_CSV = f"{PROJECT_ROOT}/job_applications.csv"
-# COLUMN_NAMES = ["Company", "Position", "Date Applied", "Status", "Portal Link", "Notes"]
-
 ##### COLORS #####
 OKGREEN = "\033[1;32m"
 INFOBLUE = "\033[1;34m"
@@ -92,9 +69,6 @@ LOG_TMP_FILENAME = f"{PROJECT_ROOT}/logs/run_error.log"
 LOG_FILEMODE = "a"
 LOG_FORMAT = "%(asctime)s %(name)s %(levelname)s %(message)s"
 LOG_DATEFMT = "%Y-%m-%d %H:%M:%S"
-
-#### xvfb Constants ####
-XVFB_CACHE_FLAG = f"{PROJECT_ROOT}/.cache/xvfb"
 
 #### Formula configuration ####
 FORMULA_CONFIG_PATH = f"{PROJECT_ROOT}/infra/build/config/formula.json"
