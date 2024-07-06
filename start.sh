@@ -25,6 +25,7 @@ if [[ "$1" == "--dev" ]]; then
         exit 1
     fi
     if [[ "$DT_HOME" == "" ]]; then
+        unset DT_HOME
         export DT_HOME=$(pwd)
         dt_command="./start.sh"
     fi
@@ -153,7 +154,7 @@ if [[ "$1" == "--dev" ]]; then
     shift
 fi
 
-export CECHO=$(realpath $DT_HOME/infra/scripts/shell/echo.sh)
+export CECHO=$(realpath $DT_HOME/src/utils/shell/echo.sh)
 export ARTIFACT_HOME_DIR=$DT_HOME/infra/artifacts
 
 cecho() {
