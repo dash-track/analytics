@@ -13,7 +13,7 @@ import pickle
 import os
 import time
 from datetime import datetime, date
-import pyautogui
+
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[4]))
 import constants
@@ -111,14 +111,10 @@ class DoorDash(Platform):
                                 EC.presence_of_element_located((By.XPATH, "//span[text()='View Receipt']"))
                             )
                         action = ActionChains(self.driver)
-                        action.context_click(receipt_button)
-
-                        time.sleep(5)
-
-                        pyautogui.press('down')
-                        pyautogui.press('enter')
-                        
-                        time.sleep(5)
+                        action.context_click(receipt_button).perform()
+                        action.send_keys(Keys.ARROW_DOWN).send_keys(Keys.RETURN).perform()
+                        time.sleep(4)
+                        self.driver.close()
 
                 except Exception as e:
                     print("Error processing order: ", e)
