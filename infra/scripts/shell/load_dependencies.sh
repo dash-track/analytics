@@ -28,7 +28,7 @@ fi
 tar -xzvf $ARTIFACT_HOME_DIR/dependencies.tar.$arch.gz -C $ARTIFACT_HOME_DIR
 
 # Install the dependencies
-$DT_PIP install --no-index --find-links=$ARTIFACT_HOME_DIR/dependencies -r $DT_HOME/requirements.txt
+$DT_PIP install --find-links=$ARTIFACT_HOME_DIR/dependencies -r $DT_HOME/requirements.txt
 
 # Clean up the dependencies directory
 rip $ARTIFACT_HOME_DIR/dependencies

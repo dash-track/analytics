@@ -283,6 +283,14 @@ if [[ "$1" == "-c" ]] || [[ "$1" == "--clean" ]]; then
     quit
 fi
 
+# Check if --clean-all is passed as an argument
+if [[ "$1" == "--clean-all" ]]; then
+    cecho -c yellow -t "Cleaning all..."
+    clean
+    rip $DT_HOME/infra/artifacts
+    quit
+fi
+
 # Create logs, .cache, bkp, and bin directories in one go if none exist
 if ! test -d "$DT_HOME/logs" || ! test -d "$DT_HOME/.cache" || ! test -d "$DT_HOME/bin"; then
     cecho -c yellow -t "Creating directories..."
