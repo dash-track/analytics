@@ -21,7 +21,7 @@ NY = ["NO", "YES"]
 #### Redis Constants ####
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
-REDIS_CONTAINER_NAME = "redis-trapp"
+REDIS_CONTAINER_NAME = "redis-dashtrack"
 REDIS_DATA_DIR = f"{REDIS_CONTAINER_NAME}-data"
 REDIS_DOCKER_IMAGE_TAG = "redis:7.2.2-bookworm"
 REDIS_USERNAME = "default"

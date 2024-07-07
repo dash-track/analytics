@@ -3,6 +3,8 @@ import pathlib
 import uuid
 import redis
 
+from datetime import date
+
 sys.path.append(f"{pathlib.Path(__file__).parent.resolve()}/../..")
 
 from src.services.redis.redis_object import RedisObject
@@ -17,11 +19,11 @@ class Order(RedisObject):
 
     def __init__(
         self,
-        restaurant_name,
-        amount_spent_total,
-        date_of_order,
-        items={},
-        redis_client=None,
+        restaurant_name: str,
+        amount_spent_total: int,
+        date_of_order: date,
+        items: dict = {},
+        redis_client: redis.Redis = None,
     ):
         """
         Initialize Order object with restaurant name, amount spent, date of order, and items.
@@ -43,7 +45,7 @@ class Order(RedisObject):
         self.date_of_order = date_of_order
         self.items = items if items is not None else {}
 
-    def inject_redis_client(self, redis_client, override=False):
+    def inject_redis_client(self, redis_client: redis.Redis, override: bool = False):
         """
         Inject Redis client into Order object. Required by the save and load
         methods in the RedisInterface class.
@@ -80,7 +82,7 @@ class Order(RedisObject):
             self._redis_client.hmset(item_key, item_value)
 
     @staticmethod
-    def load(self, key, redis_client):
+    def load(key: uuid.UUID, redis_client: redis.Redis):
         """
         Get the order data from Redis. This function retrieves the order data as a
         hash from the key provided. We then extract the fields from the hash and populate
