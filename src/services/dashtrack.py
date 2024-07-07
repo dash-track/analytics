@@ -24,6 +24,7 @@ class DashTrackService:
     def __init__(self):
         self.thread_local = None
         self.logger_builder = None
+        self.redis_service = None
         self._setup()
         self._start_redis()
 
@@ -53,7 +54,7 @@ class DashTrackService:
         """
         print("Starting Redis service...", end=" ")
         self.redis_service = RedisService(
-            password=f"{os.getenv('REDIS_TRAPP_PWD', constants.REDIS_TEST_PWD)}"
+            password=f"{os.getenv('REDIS_DT_PWD', constants.REDIS_TEST_PWD)}"
         )
         try:
             self.redis_service.init()
@@ -68,7 +69,7 @@ class DashTrackService:
         """
         # Stop Redis service
         print("Stopping Redis service...", end=" ")
-        self.service.stop()
+        self.redis_service.stop()
         print(f"{constants.OKGREEN}OK{constants.ENDC}")
         # Delete thread local
         del self.thread_local

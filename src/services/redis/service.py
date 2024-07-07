@@ -45,7 +45,7 @@ class RedisService:
             db=0,
         )
 
-    def flush(self) -> None:
+    def _flush(self) -> None:
         """
         Flush Redis database.
         """
@@ -57,22 +57,24 @@ class RedisService:
         except redis.exceptions.ConnectionError:
             raise ServiceNotRunningError("Redis")
 
-    def stop(self) -> None:
+    def stop(self, reset: bool = False) -> None:
         """
         Stop the Redis service through Docker.
         """
-        # Clear Redis database
-        self.flush()
         # Stop Redis service, remove container and volume
         with open(f"{constants.REDIS_LOG_FILE}", "w") as log:
             SubprocessService(
                 [f"docker rm -f {constants.REDIS_CONTAINER_NAME}"],
                 {"stdout": log, "stderr": log, "shell": True},
             ).call()
-            # SubprocessService(
-            #     [f"docker volume rm {constants.REDIS_DATA_DIR}"],
-            #     {"stdout": log, "stderr": log, "shell": True},
-            # ).call()
+        if reset:
+            # Clear Redis database
+            self._flush()
+            with open(f"{constants.REDIS_LOG_FILE}", "w") as log:
+                SubprocessService(
+                    [f"docker volume rm {constants.REDIS_DATA_DIR}"],
+                    {"stdout": log, "stderr": log, "shell": True},
+                ).call()
 
     def init(self) -> None:
         """

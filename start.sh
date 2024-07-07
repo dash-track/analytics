@@ -435,17 +435,24 @@ while [[ $# -gt 0 ]]; do
             docker_redis_metadata=$($DT_PYTHON -c "import sys; sys.path.append('$DT_HOME'); from constants import REDIS_CONTAINER_NAME, REDIS_DATA_DIR; print(REDIS_CONTAINER_NAME, REDIS_DATA_DIR)")
             container_name=$(echo $docker_redis_metadata | awk -F' ' '{print $1}')
             data_volume_name=$(echo $docker_redis_metadata | awk -F' ' '{print $2}')
-            status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
-            cecho -c yellow -t "Redis container status: $status"
-            if [[ "$status" =~ "No such object" ]]; then
-                quit "No redis service found to fix!"
+            container_status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
+            volume_status=$(docker volume inspect $data_volume_name 2>&1)
+            cecho -c yellow -t "Redis container status: $container_status"
+            if [[ "$container_status" =~ "No such object" ]]; then
+                cecho -c red -t "No redis container found to fix!"
             else
                 # Stop and remove redis container
-                docker rm -f $container_name 2>&1
-                docker volume rm $data_volume_name 2>&1
+                docker rm -f $container_name > /dev/null 2>&1
                 cecho -c green -t "Redis container removed!"
-                cecho -c green -t "To restart redis, run trapp again."
             fi
+            cecho -c yellow -t "Redis volume status: $volume_status"
+            if [[ "$volume_status" =~ "no such volume" ]]; then
+                cecho -c red -t "No redis volume found to fix!"
+            else
+                docker volume rm $data_volume_name > /dev/null 2>&1
+                cecho -c green -t "Redis data volume removed!"
+            fi
+            cecho -c green -t "To restart redis, run dashtrack again."
             quit
         else
             quit "Invalid service: $service"
