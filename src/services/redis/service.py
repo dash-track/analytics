@@ -69,10 +69,10 @@ class RedisService:
                 [f"docker rm -f {constants.REDIS_CONTAINER_NAME}"],
                 {"stdout": log, "stderr": log, "shell": True},
             ).call()
-            SubprocessService(
-                [f"docker volume rm {constants.REDIS_DATA_DIR}"],
-                {"stdout": log, "stderr": log, "shell": True},
-            ).call()
+            # SubprocessService(
+            #     [f"docker volume rm {constants.REDIS_DATA_DIR}"],
+            #     {"stdout": log, "stderr": log, "shell": True},
+            # ).call()
 
     def init(self) -> None:
         """

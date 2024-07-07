@@ -52,14 +52,14 @@ class DashTrackService:
         Start the Redis service.
         """
         print("Starting Redis service...", end=" ")
-        self.service = RedisService(
+        self.redis_service = RedisService(
             password=f"{os.getenv('REDIS_TRAPP_PWD', constants.REDIS_TEST_PWD)}"
         )
         try:
-            self.service.init()
+            self.redis_service.init()
         except ServiceAlreadyRunningError as e:
             print(e)
-        assert self.service.status(), "Redis service not running"
+        assert self.redis_service.status(), "Redis service not running"
         print(f"{constants.OKGREEN}OK{constants.ENDC}")
 
     def _teardown(self):
