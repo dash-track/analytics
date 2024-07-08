@@ -285,9 +285,14 @@ fi
 
 # Check if --clean-all is passed as an argument
 if [[ "$1" == "--clean-all" ]]; then
-    cecho -c yellow -t "Cleaning all..."
+    echo "Cleaning up everything..."
+    if [ ! -d "$DT_HOME/infra/artifacts" ]; then
+        cecho -c yellow -t "No cached artifacts found, skipping..."
+    else
+        cecho -c yellow -t "Removing cached artifacts..."
+        rip $DT_HOME/infra/artifacts
+    fi
     clean
-    rip $DT_HOME/infra/artifacts
     quit
 fi
 
