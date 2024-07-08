@@ -2,7 +2,7 @@
 #^ Dynamically set the path to the bash interpreter
 
 if [[ ${OS:-} = Windows_NT ]]; then
-    echo 'error: Please install bun using Windows Subsystem for Linux'
+    echo 'error: Please install dashtrack using Windows Subsystem for Linux'
     exit 1
 fi
 
