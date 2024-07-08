@@ -2,7 +2,7 @@
 #^ Dynamically set the path to the bash interpreter
 
 if [[ ${OS:-} = Windows_NT ]]; then
-    echo 'error: Please install bun using Windows Subsystem for Linux'
+    echo 'error: Please install dashtrack using Windows Subsystem for Linux'
     exit 1
 fi
 
@@ -16,6 +16,8 @@ tildify() {
     fi
 }
 
+dt_command="dashtrack"
+
 # If the --dev flag is passed, check if $DT_HOME is set, if it is not, set it to the current directory
 if [[ "$1" == "--dev" ]]; then
     if [[ ! -d "src" ]]; then
@@ -23,7 +25,9 @@ if [[ "$1" == "--dev" ]]; then
         exit 1
     fi
     if [[ "$DT_HOME" == "" ]]; then
+        unset DT_HOME
         export DT_HOME=$(pwd)
+        dt_command="./start.sh"
     fi
 fi
 
@@ -166,11 +170,25 @@ help() {
 DashTrack 0.0.0
 Track your DoorDash trends!
 
-Usage: ./start.sh [OPTIONS]
+Usage: $dt_command [OPTIONS]
 
-OPTIONS:  
+OPTIONS:
+    -c, --clean
+        Clean up cache and daemon files
+
+    -f, --fix <service>
+        Fix any broken trapp service. Currently supported services:
+            colima
+            redis
+
+    --build-dependencies
+        Build pip3 dependencies for trapp on the current system
+
     -h, --help
         Print help and exit
+
+    -v, --version
+        Print version, help and exit
 
 EOF
 }
@@ -254,13 +272,26 @@ clean() {
 }
 
 # Check if --help or -h is passed as an argument
-if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]] || [[ "$1" == "-v" ]] || [[ "$1" == "--version" ]]; then
     help
     quit
 fi
 
 # Check if --clean or -c is passed as an argument
 if [[ "$1" == "-c" ]] || [[ "$1" == "--clean" ]]; then
+    clean
+    quit
+fi
+
+# Check if --clean-all is passed as an argument
+if [[ "$1" == "--clean-all" ]]; then
+    echo "Cleaning up everything..."
+    if [ ! -d "$DT_HOME/infra/artifacts" ]; then
+        cecho -c yellow -t "No cached artifacts found, skipping..."
+    else
+        cecho -c yellow -t "Removing cached artifacts..."
+        rip $DT_HOME/infra/artifacts
+    fi
     clean
     quit
 fi
@@ -286,7 +317,7 @@ export DT_PIP=$DT_HOME/env/bin/pip3 # Set pip3 in virtual environment
 
 # Check if --build-dependencies is passed as an argument
 if [[ "$1" == "--build-dependencies" ]]; then
-    $DT_HOME/src/utils/shell/build_dependencies.sh
+    $DT_HOME/infra/scripts/shell/build_dependencies.sh
     quit
 fi
 
@@ -295,9 +326,23 @@ output=$($DT_HOME/env/bin/python3 $DT_HOME/tests/test_requirements.py)
 if [ $? -ne 0 ]; then
     cecho -c yellow -t "Error: python3 ./tests/test_requirements.py failed with output^"
     echo "Dependency requirements not satisfied. Installing dependencies..."
-    $DT_HOME/src/utils/shell/load_dependencies.sh
+    $DT_HOME/infra/scripts/shell/load_dependencies.sh
 else
     cecho -c green -t "All dependencies are present!"
+fi
+
+if [[ "$(docker ps 2>&1)" =~ "Cannot connect to the Docker daemon" ]]; then
+    if [[ $arch == "Darwin" ]]; then
+        # Ask user to install Docker Desktop
+        cecho -c red -t "Docker runtime not detected. Please start or install Docker Desktop to use DashTrack."
+    elif [[ $arch == "Linux" ]]; then
+        cecho -c red -t "Docker runtime not detected. Starting runtime (docker engine)..."
+        sudo service docker start
+    else
+        quit "Invalid architecture: $arch. trapp is only supported on x86_64 and arm64 versions of Darwin and Linux."
+    fi
+else
+    cecho -c green -t "Docker runtime found!"
 fi
 
 # Check if Google Chrome is installed on system (only required for autofill)
@@ -360,7 +405,7 @@ else
     # Check if the script ran successfully
     if [ $? -ne 0 ]; then
         # rm -rf bin/chrome-driver
-        quit "scripts/utils/install_chrome_driver.py failed. Please check the logs for more information."
+        quit "src/utils/install_chrome_driver.py failed. Please check the logs for more information."
     fi
 fi
 
@@ -369,6 +414,55 @@ ARGFLAG=0
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+    -f | --fix)
+        shift # Remove the --fix argument
+        service=$1
+        if [[ "$service" == "" ]]; then
+            quit "No service specified!"
+        fi
+        cecho -c yellow -t "Fixing $service..."
+        if [[ "$service" == "colima" ]]; then
+            status=$(limactl list | grep colima | awk -F' ' '{print $2}')
+            cecho -c yellow -t "Colima cotainer status: $status"
+            if [[ "$status" == "Broken" ]]; then
+                limactl factory-reset colima
+                status=$(limactl list | grep colima | awk -F' ' '{print $2}')
+                if [[ "$status" == "Broken" ]]; then
+                    quit "Failed to fix colima!"
+                else
+                    cecho -c green -t "Colima fixed!"
+                fi
+            else
+                cecho -c green -t "Colima is not broken!"
+                quit
+            fi
+        elif [[ "$service" == "redis" ]]; then
+            docker_redis_metadata=$($DT_PYTHON -c "import sys; sys.path.append('$DT_HOME'); from constants import REDIS_CONTAINER_NAME, REDIS_DATA_DIR; print(REDIS_CONTAINER_NAME, REDIS_DATA_DIR)")
+            container_name=$(echo $docker_redis_metadata | awk -F' ' '{print $1}')
+            data_volume_name=$(echo $docker_redis_metadata | awk -F' ' '{print $2}')
+            container_status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
+            volume_status=$(docker volume inspect $data_volume_name 2>&1)
+            cecho -c yellow -t "Redis container status: $container_status"
+            if [[ "$container_status" =~ "No such object" ]]; then
+                cecho -c red -t "No redis container found to fix!"
+            else
+                # Stop and remove redis container
+                docker rm -f $container_name > /dev/null 2>&1
+                cecho -c green -t "Redis container removed!"
+            fi
+            cecho -c yellow -t "Redis volume status: $volume_status"
+            if [[ "$volume_status" =~ "no such volume" ]]; then
+                cecho -c red -t "No redis volume found to fix!"
+            else
+                docker volume rm $data_volume_name > /dev/null 2>&1
+                cecho -c green -t "Redis data volume removed!"
+            fi
+            cecho -c green -t "To restart redis, run dashtrack again."
+            quit
+        else
+            quit "Invalid service: $service"
+        fi
+        ;;
     *)
         quit "Invalid option: $arg"
         ;;
@@ -376,5 +470,5 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 if [ $ARGFLAG -eq 0 ]; then
-    $DT_PYTHON $DT_HOME/main.py
+    $DT_PYTHON $DT_HOME/src/main.py
 fi
