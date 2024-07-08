@@ -120,19 +120,12 @@ class Order(RedisObject):
             redis_client, redis.StrictRedis
         ), "Redis client not passed to load method"
         order_details = redis_client.hgetall(f"order:{key}")
-        # order_details = {
-        #     k.decode("utf-8"): v.decode("utf-8") for k, v in order_details.items()
-        # }
 
         # Get the items and quantities
         items_keys = redis_client.keys(f"order:{key}:items:*")
         items = {}
         for item_key in items_keys:
-            # item_key = item_key.decode("utf-8")
             item_details = redis_client.hgetall(item_key)
-            # item_details = {
-            #     k.decode("utf-8"): v.decode("utf-8") for k, v in item_details.items()
-            # }
             items[item_key.split(":")[-1]] = item_details
 
         return Order(

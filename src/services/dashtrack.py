@@ -79,7 +79,7 @@ class DashTrackService:
         """
         Main entry point for the DashTrack service.
         """
-        # sleep for 10 seconds
+        # Redis test
         order_data = {
             "restaurant_name": "Pizza Place",
             "amount_spent_total": 50.75,
