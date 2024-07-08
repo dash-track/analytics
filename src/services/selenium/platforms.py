@@ -6,7 +6,11 @@ class Platform:
         self.cookies_path = cookies_path
 
     @abc.abstractmethod
-    def init_driver(self):
+    def init_undetected_driver(self):
+        raise NotImplementedError("Subclasses must implement this method")
+    
+    @abc.abstractmethod
+    def init_selwire_driver(self):
         raise NotImplementedError("Subclasses must implement this method")
     
     def quit_driver(self):
@@ -29,14 +33,10 @@ class Platform:
     def access_with_cookies(self):
         raise NotImplementedError("Subclasses must implement this method")
     
-    @abc.abstractmethod
-    def create_order_obj(self, orders):
-        raise NotImplementedError("Subclasses must implement this method")
+    # @abc.abstractmethod
+    # def query_all_orders(self):
+    #     raise NotImplementedError("Subclasses must implement this method")
     
-    @abc.abstractmethod
-    def query_all_orders(self):
-        raise NotImplementedError("Subclasses must implement this method")
-    
-    @abc.abstractmethod
-    def add_order_total(self):
-        raise NotImplementedError("Subclasses must implement this method")
+    # @abc.abstractmethod
+    # def add_order_total(self):
+    #     raise NotImplementedError("Subclasses must implement this method")

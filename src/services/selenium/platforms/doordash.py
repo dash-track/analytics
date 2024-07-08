@@ -34,27 +34,32 @@ options.add_argument('start-maximized')  # start maximized
 class DoorDash(Platform):
     def __init__(self, service, cookies_path):
         super().__init__(service, cookies_path)
-        self.driver = self.init_driver()
+        self.driver1 = self.init_undetected_driver()
+        self.driver2 = self.init_selwire_driver()
     
-    def init_driver(self):
+    def init_undetected_driver(self):
         driver = uc.Chrome(service=self.service, options=options)
+        return driver
+    
+    def init_selwire_driver(self):
+        driver = webdriver.Chrome(service=self.service, options=options)
         return driver
     
     def quit_driver(self):
         return super().quit_driver()
 
     def login(self):
-        self.driver.get("https://www.doordash.com/")
+        self.driver1.get("https://www.doordash.com/")
 
         try:
-            wait = WebDriverWait(self.driver, constants.SELENIUM_GLOBAL_DRIVER_WAIT_TIME)
+            wait = WebDriverWait(self.driver1, constants.SELENIUM_GLOBAL_DRIVER_WAIT_TIME)
             login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0')]")))
             login_button.click()
                 
             print("Please log in to your Doordash account now.")
             time.sleep(50)
             
-            cookies = self.driver.get_cookies()
+            cookies = self.driver1.get_cookies()
 
             self.save_cookies(cookies)
 
@@ -88,18 +93,18 @@ class DoorDash(Platform):
             print("Error loading cookies from file: ", e)
 
     def access_with_cookies(self):
-        self.driver.get("https://www.doordash.com/orders/")
+        self.driver2.get("https://www.doordash.com/orders/")
 
         try:
             self.load_cookies()
-            self.driver.refresh()
+            self.driver2.refresh()
             time.sleep(5)
 
         except Exception as e:
             print("Error: ", e)
 
     def capture_requests(self):
-        for request in self.driver.requests:
+        for request in self.driver2.requests:
             if request.response:
                 print(f"URL: {request.url}")
                 print(f"Method: {request.method}")
@@ -107,86 +112,86 @@ class DoorDash(Platform):
                 print(f"Response Headers: {request.response.headers}")
                 print(f"Response Body: {request.response.body}\n")
 
-    def query_all_orders(self):
-        finished = False
+    # def query_all_orders(self):
+    #     finished = False
 
-        try:
-            while not finished:
-                try:
-                    orders = self.driver.find_elements(By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0 mvEok')]")
-                    print("Found Orders: ", len(orders))
+    #     try:
+    #         while not finished:
+    #             try:
+    #                 orders = self.driver.find_elements(By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0 mvEok')]")
+    #                 print("Found Orders: ", len(orders))
                 
-                    for order in orders:
-                        receipt_button = WebDriverWait(self.driver, 10).until(
-                                EC.presence_of_element_located((By.XPATH, "//span[text()='View Receipt']"))
-                            )
-                        action = ActionChains(self.driver)
-                        action.context_click(receipt_button).perform()
-                        action.send_keys(Keys.ARROW_DOWN).send_keys(Keys.RETURN).perform()
-                        time.sleep(4)
-                        self.driver.close()
+    #                 for order in orders:
+    #                     receipt_button = WebDriverWait(self.driver, 10).until(
+    #                             EC.presence_of_element_located((By.XPATH, "//span[text()='View Receipt']"))
+    #                         )
+    #                     action = ActionChains(self.driver)
+    #                     action.context_click(receipt_button).perform()
+    #                     action.send_keys(Keys.ARROW_DOWN).send_keys(Keys.RETURN).perform()
+    #                     time.sleep(4)
+    #                     self.driver.close()
 
-                except Exception as e:
-                    print("Error processing order: ", e)
-                    continue
+    #             except Exception as e:
+    #                 print("Error processing order: ", e)
+    #                 continue
 
-                finished = True
+    #             finished = True
 
-        except Exception as e:
-            print("Error: ", e)
+    #     except Exception as e:
+    #         print("Error: ", e)
 
     # redo this entire method
-    def add_order_total(self, start_date):
-        total = 0
-        reached = False
-        order_objs = []
+    # def add_order_total(self, start_date):
+    #     total = 0
+    #     reached = False
+    #     order_objs = []
 
-        try:
-            while not reached:
-                orders = self.driver.find_elements(By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0 gvqhyI')]")
+    #     try:
+    #         while not reached:
+    #             orders = self.driver.find_elements(By.XPATH, "//span[contains(@class, 'Text-sc-16fu6d-0 gvqhyI')]")
 
-                for order in orders:
-                    text = order.text
+    #             for order in orders:
+    #                 text = order.text
 
-                    parts = text.split(' • ')
-                    date_str, total_str, items = parts[:3]
+    #                 parts = text.split(' • ')
+    #                 date_str, total_str, items = parts[:3]
                     
-                    curr_date = datetime.strptime(f"{date_str} {date.today().year}", '%a, %b %d %Y')
-                    curr_total = float(total_str.replace('$', '').strip())
-                    num_items = items.split(' ')[0]
+    #                 curr_date = datetime.strptime(f"{date_str} {date.today().year}", '%a, %b %d %Y')
+    #                 curr_total = float(total_str.replace('$', '').strip())
+    #                 num_items = items.split(' ')[0]
 
-                    if curr_date >= start_date:
-                        order_obj = {
-                            "name": "blah",
-                            "date": curr_date,
-                            "amount": curr_total,
-                            "num of items": num_items,
-                        }
+    #                 if curr_date >= start_date:
+    #                     order_obj = {
+    #                         "name": "blah",
+    #                         "date": curr_date,
+    #                         "amount": curr_total,
+    #                         "num of items": num_items,
+    #                     }
 
-                        if order_obj not in order_objs:
-                            order_objs.append(order_obj)
-                            total += curr_total
+    #                     if order_obj not in order_objs:
+    #                         order_objs.append(order_obj)
+    #                         total += curr_total
 
-                    else:
-                        reached = True
-                        break
+    #                 else:
+    #                     reached = True
+    #                     break
                         
-                if not reached:
-                    try:
-                        load_more_button = WebDriverWait(self.driver, 10).until(
-                            EC.presence_of_element_located((By.XPATH, "//span[text()='Load More Deliveries']"))
-                        )
-                        self.driver.execute_script("arguments[0].scrollIntoView(true);", load_more_button)
-                        self.driver.execute_script("arguments[0].click();", load_more_button)
-                        time.sleep(3)
-                    except Exception as e:
-                        print("No more 'Load more deliveries' button found or an error occurred:", e)
-                        break 
+    #             if not reached:
+    #                 try:
+    #                     load_more_button = WebDriverWait(self.driver, 10).until(
+    #                         EC.presence_of_element_located((By.XPATH, "//span[text()='Load More Deliveries']"))
+    #                     )
+    #                     self.driver.execute_script("arguments[0].scrollIntoView(true);", load_more_button)
+    #                     self.driver.execute_script("arguments[0].click();", load_more_button)
+    #                     time.sleep(3)
+    #                 except Exception as e:
+    #                     print("No more 'Load more deliveries' button found or an error occurred:", e)
+    #                     break 
 
-        except Exception as e:
-            print("Error: ", e)
+    #     except Exception as e:
+    #         print("Error: ", e)
         
-        return total
+    #     return total
 
 class Main():
     def __init__(self):
@@ -194,12 +199,12 @@ class Main():
         self.cookies_path = os.path.join(pathlib.Path(__file__).parent.resolve(), "cookies.pkl")
         self.DD = DoorDash(self.service, self.cookies_path)
 
-        if not os.path.exists(self.cookies_path) or os.path.getsize(self.cookies_path) == 0:
-            print("No cookies found. Logging in.")
-            self.DD.login()
-        else:
-            print("Cookies found. Accessing with cookies.")  
-            self.DD.access_with_cookies()
+        # if not os.path.exists(self.cookies_path) or os.path.getsize(self.cookies_path) == 0:
+        #     print("No cookies found. Logging in.")
+        #     self.DD.login()
+        # else:
+        #     print("Cookies found. Acceissing with cookies.")  
+        #     self.DD.access_with_cookies()
         
         # start_in = input("Enter the start date (e.g., '5 May 2024'): ")
         # start_date = datetime.strptime(start_in, "%d %b %Y")
@@ -207,6 +212,11 @@ class Main():
         # total = self.DD.add_order_total(start_date)
         # print(f"Total order amounts since {start_date.strftime('%d %b')}: US${total}")
         # self.DD.query_all_orders()
+        print("log in now")
+        self.DD.login()
+        print("logged in")
+        self.DD.access_with_cookies()
+        print("accessed")
         self.DD.capture_requests()
         self.DD.quit_driver()
 
