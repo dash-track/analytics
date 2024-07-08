@@ -1,4 +1,3 @@
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -99,6 +98,15 @@ class DoorDash(Platform):
         except Exception as e:
             print("Error: ", e)
 
+    def capture_requests(self):
+        for request in self.driver.requests:
+            if request.response:
+                print(f"URL: {request.url}")
+                print(f"Method: {request.method}")
+                print(f"Status Code: {request.response.status_code}")
+                print(f"Response Headers: {request.response.headers}")
+                print(f"Response Body: {request.response.body}\n")
+
     def query_all_orders(self):
         finished = False
 
@@ -126,7 +134,6 @@ class DoorDash(Platform):
 
         except Exception as e:
             print("Error: ", e)
-
 
     # redo this entire method
     def add_order_total(self, start_date):
@@ -200,6 +207,7 @@ class Main():
         # total = self.DD.add_order_total(start_date)
         # print(f"Total order amounts since {start_date.strftime('%d %b')}: US${total}")
         # self.DD.query_all_orders()
+        self.DD.capture_requests()
         self.DD.quit_driver()
 
 if __name__ == "__main__":
