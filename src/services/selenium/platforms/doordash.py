@@ -14,6 +14,8 @@ import os
 import time
 from datetime import datetime, date
 
+from seleniumwire import webdriver
+
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[4]))
 import constants
@@ -197,7 +199,7 @@ class Main():
         # print(start_date)
         # total = self.DD.add_order_total(start_date)
         # print(f"Total order amounts since {start_date.strftime('%d %b')}: US${total}")
-        self.DD.query_all_orders()
+        # self.DD.query_all_orders()
         self.DD.quit_driver()
 
 if __name__ == "__main__":
