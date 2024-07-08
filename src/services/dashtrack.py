@@ -13,6 +13,7 @@ from src.services.redis.service import RedisService
 from src.utils.errors import ServiceAlreadyRunningError
 from src.utils.threader import LoggingPool
 from src.utils.logger import LoggerBuilder
+from src.models.order import Order
 
 
 class DashTrackService:
@@ -79,8 +80,20 @@ class DashTrackService:
         Main entry point for the DashTrack service.
         """
         # sleep for 10 seconds
-        print("Sleeping for 10 seconds...")
-        import time
+        order_data = {
+            "restaurant_name": "Pizza Place",
+            "amount_spent_total": 50.75,
+            "date_of_order": "2024-07-06",
+            "items": {
+                "pizza": {"quantity": 2, "price_per_unit_quantity": 30},
+                "soda": {"quantity": 3, "price_per_unit_quantity": 20},
+                "salad": {"quantity": 1, "price_per_unit_quantity": 18},
+            },
+        }
 
-        time.sleep(10)
-        print("Done sleeping")
+        instance = self.redis_service.connect()
+        order = Order(**order_data, redis_client=instance)
+        order.save()
+        saved_order = Order.load(order.order_id, instance)
+        print(saved_order.__dict__)
+        

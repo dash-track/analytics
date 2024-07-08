@@ -22,6 +22,7 @@ class Order(RedisObject):
         restaurant_name: str,
         amount_spent_total: int,
         date_of_order: date,
+        order_id: uuid.UUID = None,
         items: dict = {},
         redis_client: redis.StrictRedis = None,
     ):
@@ -37,10 +38,10 @@ class Order(RedisObject):
         if redis_client is not None:
             assert isinstance(
                 redis_client, redis.StrictRedis
-            ), "Redis client passed is not an instance of redis.Redis"
+            ), "Redis client passed is not an instance of redis.StrictRedis"
 
         self._redis_client = redis_client
-        self._order_id = str(uuid.uuid4())
+        self._order_id = str(uuid.uuid4()) if order_id is None else order_id
         self._restaurant_name = restaurant_name
         self._amount_spent_total = amount_spent_total
         self._date_of_order = date_of_order
@@ -119,19 +120,19 @@ class Order(RedisObject):
             redis_client, redis.StrictRedis
         ), "Redis client not passed to load method"
         order_details = redis_client.hgetall(f"order:{key}")
-        order_details = {
-            k.decode("utf-8"): v.decode("utf-8") for k, v in order_details.items()
-        }
+        # order_details = {
+        #     k.decode("utf-8"): v.decode("utf-8") for k, v in order_details.items()
+        # }
 
         # Get the items and quantities
         items_keys = redis_client.keys(f"order:{key}:items:*")
         items = {}
         for item_key in items_keys:
-            item_key = item_key.decode("utf-8")
+            # item_key = item_key.decode("utf-8")
             item_details = redis_client.hgetall(item_key)
-            item_details = {
-                k.decode("utf-8"): v.decode("utf-8") for k, v in item_details.items()
-            }
+            # item_details = {
+            #     k.decode("utf-8"): v.decode("utf-8") for k, v in item_details.items()
+            # }
             items[item_key.split(":")[-1]] = item_details
 
         return Order(
