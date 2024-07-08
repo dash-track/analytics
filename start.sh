@@ -2,7 +2,7 @@
 #^ Dynamically set the path to the bash interpreter
 
 if [[ ${OS:-} = Windows_NT ]]; then
-    echo 'error: Please install bun using Windows Subsystem for Linux'
+    echo 'error: Please install dashtrack using Windows Subsystem for Linux'
     exit 1
 fi
 
@@ -285,9 +285,14 @@ fi
 
 # Check if --clean-all is passed as an argument
 if [[ "$1" == "--clean-all" ]]; then
-    cecho -c yellow -t "Cleaning all..."
+    echo "Cleaning up everything..."
+    if [ ! -d "$DT_HOME/infra/artifacts" ]; then
+        cecho -c yellow -t "No cached artifacts found, skipping..."
+    else
+        cecho -c yellow -t "Removing cached artifacts..."
+        rip $DT_HOME/infra/artifacts
+    fi
     clean
-    rip $DT_HOME/infra/artifacts
     quit
 fi
 
@@ -329,9 +334,9 @@ fi
 if [[ "$(docker ps 2>&1)" =~ "Cannot connect to the Docker daemon" ]]; then
     if [[ $arch == "Darwin" ]]; then
         # Ask user to install Docker Desktop
-        cecho -c yellow -t "Docker runtime not detected. Please start or install Docker Desktop to use DashTrack."
+        cecho -c red -t "Docker runtime not detected. Please start or install Docker Desktop to use DashTrack."
     elif [[ $arch == "Linux" ]]; then
-        cecho -c yellow -t "Docker runtime not detected. Starting runtime (docker engine)..."
+        cecho -c red -t "Docker runtime not detected. Starting runtime (docker engine)..."
         sudo service docker start
     else
         quit "Invalid architecture: $arch. trapp is only supported on x86_64 and arm64 versions of Darwin and Linux."
@@ -435,17 +440,24 @@ while [[ $# -gt 0 ]]; do
             docker_redis_metadata=$($DT_PYTHON -c "import sys; sys.path.append('$DT_HOME'); from constants import REDIS_CONTAINER_NAME, REDIS_DATA_DIR; print(REDIS_CONTAINER_NAME, REDIS_DATA_DIR)")
             container_name=$(echo $docker_redis_metadata | awk -F' ' '{print $1}')
             data_volume_name=$(echo $docker_redis_metadata | awk -F' ' '{print $2}')
-            status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
-            cecho -c yellow -t "Redis container status: $status"
-            if [[ "$status" =~ "No such object" ]]; then
-                quit "No redis service found to fix!"
+            container_status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>&1)
+            volume_status=$(docker volume inspect $data_volume_name 2>&1)
+            cecho -c yellow -t "Redis container status: $container_status"
+            if [[ "$container_status" =~ "No such object" ]]; then
+                cecho -c red -t "No redis container found to fix!"
             else
                 # Stop and remove redis container
-                docker rm -f $container_name 2>&1
-                docker volume rm $data_volume_name 2>&1
+                docker rm -f $container_name > /dev/null 2>&1
                 cecho -c green -t "Redis container removed!"
-                cecho -c green -t "To restart redis, run trapp again."
             fi
+            cecho -c yellow -t "Redis volume status: $volume_status"
+            if [[ "$volume_status" =~ "no such volume" ]]; then
+                cecho -c red -t "No redis volume found to fix!"
+            else
+                docker volume rm $data_volume_name > /dev/null 2>&1
+                cecho -c green -t "Redis data volume removed!"
+            fi
+            cecho -c green -t "To restart redis, run dashtrack again."
             quit
         else
             quit "Invalid service: $service"
