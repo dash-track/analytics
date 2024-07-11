@@ -13,11 +13,10 @@ import os
 import time
 from datetime import datetime, date
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[4]))
+# Added to make consistent import paths with respect to src
+sys.path.append(f"{pathlib.Path(__file__).parent.resolve()}/../../../..")
 import constants
-
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-from platforms import Platform
+from src.services.selenium.platforms import Platform
 
 # Set up Chrome options
 options = Options()
@@ -29,11 +28,19 @@ options.add_argument('start-maximized')  # start maximized
 # options.add_argument('--disable-extensions')
 
 class DoorDash(Platform):
+    """
+    DoorDash class inheriting from platform. Has functionality specific to DoorDash.
+    """
+    name = "DoorDash"
+    base_url = "https://www.doordash.com/"
+    order_url = "https://www.doordash.com/orders/"
+
+
     def __init__(self, service, cookies_path):
         super().__init__(service, cookies_path)
-        self.driver = self.init_undetected_driver()
+        self.driver = self.init_driver()
     
-    def init_undetected_driver(self):
+    def init_driver(self):
         driver = uc.Chrome(service=self.service, options=options)
         return driver
     
@@ -41,7 +48,10 @@ class DoorDash(Platform):
         return super().quit_driver()
 
     def login(self):
-        self.driver.get("https://www.doordash.com/")
+        """
+        Logging in to DoorDash. This prompts the user to login and then calls on the save cookies method.
+        """
+        self.driver.get(self.base_url)
 
         try:
             wait = WebDriverWait(self.driver, constants.SELENIUM_GLOBAL_DRIVER_WAIT_TIME)
@@ -49,16 +59,31 @@ class DoorDash(Platform):
             login_button.click()
                 
             print("Please log in to your Doordash account now.")
-            time.sleep(50)
-            
-            cookies = self.driver.get_cookies()
 
-            self.save_cookies(cookies)
+            login_success = False
+            start_time = time.time()
+
+            while not login_success and (time.time() - start_time) < 300:
+                try:
+                    account_element = self.driver.find_element(By.XPATH, "//input[@aria-label='Store search: begin typing to search for stores available on DoorDash']")
+                    login_success = True
+                except:
+                    time.sleep(1)
+        
+            if login_success:
+                cookies = self.driver.get_cookies()
+                self.save_cookies(cookies)
+                print("Login successful, cookies saved.")
+            else:
+                print("Login timed out after 5 minutes.")
 
         except Exception as e:
             print("Error: ", e)
 
     def save_cookies(self, cookies):
+        """
+        Creating and saving cookie objects to a .pkl file
+        """
         cookie_objs = []
         for cookie in cookies:
             if cookie["domain"] == ".doordash.com":
@@ -73,29 +98,25 @@ class DoorDash(Platform):
             with open(self.cookies_path, "wb") as file:
                 pickle.dump(cookie_objs, file)
         except Exception as e:
-            print("Error saving cookies to file: ", e)
-            
-    def load_cookies(self):
-        try:
-            with open(self.cookies_path, "rb") as file:
-                cookies = pickle.load(file)
-                for cookie in cookies:
-                    self.driver.add_cookie(cookie)
-        except Exception as e:
-            print("Error loading cookies from file: ", e)
+            print("Error saving cookies to file: ", e)    
 
     def access_with_cookies(self):
-        self.driver.get("https://www.doordash.com/orders/")
+        """
+        Loading cookies and accessing the order page using them.
+        """
+        self.driver.get(self.order_url)
 
         try:
-            self.load_cookies()
+            self.load_cookies(self.driver)
             self.driver.refresh()
             time.sleep(5)
 
         except Exception as e:
             print("Error: ", e)
 
-# Main for testing
+"""
+Main for testing
+"""
 # class Main():
 #     def __init__(self):
 #         self.service = Service(executable_path=constants.CHROME_DRIVER_EXECUTABLE)
@@ -108,7 +129,7 @@ class DoorDash(Platform):
 #         else:
 #             print("Cookies found. Acceissing with cookies.")  
 #             self.DD.access_with_cookies()
-        
+
 #         self.DD.quit_driver()
 
 # if __name__ == "__main__":

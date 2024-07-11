@@ -1,16 +1,28 @@
 import abc
+import pickle
 
 class Platform:
+    """
+    Parent platform class for all different food delivery platforms.
+    """
     def __init__(self, service, cookies_path):
         self.service = service
         self.cookies_path = cookies_path
 
-    @abc.abstractmethod
-    def init_undetected_driver(self):
-        raise NotImplementedError("Subclasses must implement this method")
+    @property
+    def name(self):
+        raise NotImplementedError
+    
+    @property
+    def base_url(self):
+        raise NotImplementedError
+    
+    @property
+    def order_url(self):
+        raise NotImplementedError
     
     @abc.abstractmethod
-    def init_selwire_driver(self):
+    def init_driver(self):
         raise NotImplementedError("Subclasses must implement this method")
     
     def quit_driver(self):
@@ -27,16 +39,17 @@ class Platform:
     
     @abc.abstractmethod
     def load_cookies(self, driver):
-        raise NotImplementedError("Subclasses must implement this method")
+        """
+        Loading cookies from the saved file and adding them to the driver.
+        """
+        try:
+            with open(self.cookies_path, "rb") as file:
+                cookies = pickle.load(file)
+                for cookie in cookies:
+                    self.driver.add_cookie(cookie)
+        except Exception as e:
+            print("Error loading cookies from file: ", e)
     
     @abc.abstractmethod
     def access_with_cookies(self):
         raise NotImplementedError("Subclasses must implement this method")
-    
-    # @abc.abstractmethod
-    # def query_all_orders(self):
-    #     raise NotImplementedError("Subclasses must implement this method")
-    
-    # @abc.abstractmethod
-    # def add_order_total(self):
-    #     raise NotImplementedError("Subclasses must implement this method")
