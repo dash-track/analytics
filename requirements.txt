@@ -9,6 +9,7 @@ shellingham==1.5.4
 setuptools==70.1.1
 undetected-chromedriver==3.5.5
 redis[hiredis]==5.0.1
+selenium-wire==5.1.0
 
 ##### HEADLESS SUPPORT DEPENDENCIES #####
 pyvirtualdisplay==2.2
