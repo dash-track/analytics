@@ -117,20 +117,20 @@ class DoorDash(Platform):
 """
 Main for testing
 """
-# class Main():
-#     def __init__(self):
-#         self.service = Service(executable_path=constants.CHROME_DRIVER_EXECUTABLE)
-#         self.cookies_path = os.path.join(pathlib.Path(__file__).parent.resolve(), "cookies.pkl")
-#         self.DD = DoorDash(self.service, self.cookies_path)
+class Main():
+    def __init__(self):
+        self.service = Service(executable_path=constants.CHROME_DRIVER_EXECUTABLE)
+        self.cookies_path = constants.CHROME_DRIVER_COOKIE_DIR
+        self.DD = DoorDash(self.service, self.cookies_path)
 
-#         if not os.path.exists(self.cookies_path) or os.path.getsize(self.cookies_path) == 0:
-#             print("No cookies found. Logging in.")
-#             self.DD.login()
-#         else:
-#             print("Cookies found. Acceissing with cookies.")  
-#             self.DD.access_with_cookies()
+        if not os.path.exists(self.cookies_path) or os.path.getsize(self.cookies_path) == 0:
+            print("No cookies found. Logging in.")
+            self.DD.login()
+        else:
+            print("Cookies found. Acceissing with cookies.")  
+            self.DD.access_with_cookies()
 
-#         self.DD.quit_driver()
+        self.DD.quit_driver()
 
-# if __name__ == "__main__":
-#     Main()
+if __name__ == "__main__":
+    Main()
