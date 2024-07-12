@@ -33,8 +33,5 @@ class Vault:
             )
         )
         if not platform_dir_path.exists():
-            if not headed_support:
-                platform.non_headed_auth_instruction()
-                raise NoHeadedSupportError(platform.name)
             return False
         return True

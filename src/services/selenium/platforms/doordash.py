@@ -43,9 +43,6 @@ class DoorDash(Platform):
     def init_driver(self):
         driver = uc.Chrome(service=self.service, options=options)
         return driver
-    
-    def quit_driver(self):
-        return super().quit_driver()
 
     def login(self):
         """
@@ -74,8 +71,10 @@ class DoorDash(Platform):
                 cookies = self.driver.get_cookies()
                 self.save_cookies(cookies)
                 print("Login successful, cookies saved.")
+                self.quit_driver()
             else:
                 print("Login timed out after 5 minutes.")
+                self.quit_driver()
 
         except Exception as e:
             print("Error: ", e)
@@ -110,12 +109,18 @@ class DoorDash(Platform):
             self.load_cookies(self.driver)
             self.driver.refresh()
             time.sleep(5)
+            self.quit_driver()
 
         except Exception as e:
             print("Error: ", e)
 
 """
-Main for testing
+NOTE: (Baani, 2024-07-11)
+- Initialize service using constants
+- Initialize cookie path using constants
+- Create an object of DoorDash class using the two
+- If a cookie file that is populated not does exist at the cookie path, login
+- Else, access using cookies
 """
 # class Main():
 #     def __init__(self):
