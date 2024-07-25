@@ -14,3 +14,10 @@ redis[hiredis]==5.0.1
 pyvirtualdisplay==2.2
 pillow==10.1.0
 EasyProcess==1.1
+redis[hiredis]==5.0.1
+selenium-wire==5.1.0
+
+##### HEADLESS SUPPORT DEPENDENCIES #####
+pyvirtualdisplay==2.2
+pillow==10.1.0
+EasyProcess==1.1
